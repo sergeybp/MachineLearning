@@ -81,7 +81,7 @@ public class KNN {
         for (int i = 0; i < trainCV.size(); i++) {
             Data train = new Data(trainCV.get(i).stream().map(j -> data.get(j)).collect(Collectors.toList()));
             Data test = new Data(testCV.get(i).stream().map(j -> data.get(j)).collect(Collectors.toList()));
-
+            System.out.println(train.size() + " " + test.size());
             Data answer = evaluate(train, test, params);
 
             accuracy += params.measure.get().apply(test, answer);
@@ -93,7 +93,7 @@ public class KNN {
 
     public static Params learn(Data data, Measures measure) {
         Params params = new Params();
-        for (int k = MIN_K; k <= MAX_K; k += LEARN_STEP_OF_K) {
+        for (int k = MIN_K; k < MAX_K; k += LEARN_STEP_OF_K) {
             for (Distances distance : Distances.values()) {
                 for (Kernels kernel : Kernels.values()) {
                     for (SpaceTransformations transformation: SpaceTransformations.values()) {
@@ -123,8 +123,8 @@ public class KNN {
                 tmpTrain.addAll(index.subList(i + count, index.size()));
                 tmpTest.addAll(index.subList(i, i + count));
             } else {
-                tmpTrain.addAll(index.subList(0, i));
-                tmpTest.addAll(index.subList(i, index.size()));
+                tmpTrain.addAll(index.subList(0, i - 2));
+                tmpTest.addAll(index.subList(i - 2, index.size()));
             }
             trainIndies.add(tmpTrain);
             testIndices.add(tmpTest);
