@@ -1,10 +1,17 @@
 import javafx.util.Pair;
 import params.*;
-import utils.*;
+import utils.Data;
+import utils.DataInstance;
+import utils.FastScanner;
+import utils.Point;
 
-
-import java.io.*;
-import java.util.*;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.PriorityQueue;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -75,28 +82,23 @@ public class KNN {
         Pair<ArrayList<ArrayList<Integer>>, ArrayList<ArrayList<Integer>>> cv = crossValidation(data.size(), s);
         ArrayList<ArrayList<Integer>> trainCV = cv.getKey();
         ArrayList<ArrayList<Integer>> testCV = cv.getValue();
-
-        Pair<Pair<Data, Data>, Double> result = new Pair<>(new Pair<>(new Data(), new Data()), 0d);
         double accuracy = 0d;
         for (int i = 0; i < trainCV.size(); i++) {
             Data train = new Data(trainCV.get(i).stream().map(j -> data.get(j)).collect(Collectors.toList()));
             Data test = new Data(testCV.get(i).stream().map(j -> data.get(j)).collect(Collectors.toList()));
-            System.out.println(train.size() + " " + test.size());
             Data answer = evaluate(train, test, params);
 
             accuracy += params.measure.get().apply(test, answer);
-            //if (result.getValue() < accuracy)
-              //  result = new Pair<>(new Pair<>(train, answer), accuracy);
         }
         return accuracy / trainCV.size();
     }
 
     public static Params learn(Data data, Measures measure) {
         Params params = new Params();
-        for (int k = MIN_K; k < MAX_K; k += LEARN_STEP_OF_K) {
+        for (int k = MIN_K; k <= MAX_K; k += LEARN_STEP_OF_K) {
             for (Distances distance : Distances.values()) {
                 for (Kernels kernel : Kernels.values()) {
-                    for (SpaceTransformations transformation: SpaceTransformations.values()) {
+                    for (SpaceTransformations transformation : SpaceTransformations.values()) {
                         double result = new KNN(data).run(CROSS_VALIDATION_PARAM, new Params(distance, kernel, transformation, k, 0d, measure));
                         if (params.accuracy < result) {
                             params = new Params(distance, kernel, transformation, k, result, measure);
