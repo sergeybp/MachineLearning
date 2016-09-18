@@ -71,24 +71,24 @@ public class KNN {
         return params.transformation.get().from.apply(answer);
     }
 
-    private Pair<Pair<Data, Data>, Double> run(int s, Params params) {
+    private double run(int s, Params params) {
         Pair<ArrayList<ArrayList<Integer>>, ArrayList<ArrayList<Integer>>> cv = crossValidation(data.size(), s);
         ArrayList<ArrayList<Integer>> trainCV = cv.getKey();
         ArrayList<ArrayList<Integer>> testCV = cv.getValue();
 
         Pair<Pair<Data, Data>, Double> result = new Pair<>(new Pair<>(new Data(), new Data()), 0d);
-
+        double accuracy = 0d;
         for (int i = 0; i < trainCV.size(); i++) {
             Data train = new Data(trainCV.get(i).stream().map(j -> data.get(j)).collect(Collectors.toList()));
             Data test = new Data(testCV.get(i).stream().map(j -> data.get(j)).collect(Collectors.toList()));
 
             Data answer = evaluate(train, test, params);
 
-            double accuracy = params.measure.get().apply(test, answer);
-            if (result.getValue() < accuracy)
-                result = new Pair<>(new Pair<>(train, answer), accuracy);
+            accuracy += params.measure.get().apply(test, answer);
+            //if (result.getValue() < accuracy)
+              //  result = new Pair<>(new Pair<>(train, answer), accuracy);
         }
-        return result;
+        return accuracy / trainCV.size();
     }
 
     public static Params learn(Data data, Measures measure) {
@@ -97,9 +97,9 @@ public class KNN {
             for (Distances distance : Distances.values()) {
                 for (Kernels kernel : Kernels.values()) {
                     for (SpaceTransformations transformation: SpaceTransformations.values()) {
-                        Pair<Pair<Data, Data>, Double> result = new KNN(data).run(CROSS_VALIDATION_PARAM, new Params(distance, kernel, transformation, k, 0d, measure));
-                        if (params.accuracy < result.getValue()) {
-                            params = new Params(distance, kernel, transformation, k, result.getValue(), measure);
+                        double result = new KNN(data).run(CROSS_VALIDATION_PARAM, new Params(distance, kernel, transformation, k, 0d, measure));
+                        if (params.accuracy < result) {
+                            params = new Params(distance, kernel, transformation, k, result, measure);
                         }
                     }
                 }
