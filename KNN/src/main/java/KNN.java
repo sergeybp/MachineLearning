@@ -125,8 +125,8 @@ public class KNN {
                 tmpTrain.addAll(index.subList(i + count, index.size()));
                 tmpTest.addAll(index.subList(i, i + count));
             } else {
-                tmpTrain.addAll(index.subList(0, i - 2));
-                tmpTest.addAll(index.subList(i - 2, index.size()));
+                tmpTrain.addAll(index.subList(0, i));
+                tmpTest.addAll(index.subList(i, index.size()));
             }
             trainIndies.add(tmpTrain);
             testIndices.add(tmpTest);
