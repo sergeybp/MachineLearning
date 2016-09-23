@@ -42,6 +42,8 @@ public class LinearRegression {
 
     private static final double GENETIC_BOUND = 100_000d;
 
+    private final static int MARK_NUMBER = 2;
+
     private static Random r = new Random();
     private static BiFunction<Double, Double, Double> random = (rangeMin, rangeMax) -> rangeMin + (rangeMax - rangeMin) * r.nextDouble();
 
@@ -74,8 +76,7 @@ public class LinearRegression {
     }
 
     public static Vector genetic(Data data, int p) {
-        int d = 2;
-        int l = data.size();
+        int d = MARK_NUMBER;
         ArrayList<Vector> populations = new ArrayList<>();
         for (int k = 0; k < p; k++) {
             double[] init = new double[d + 1];
@@ -83,13 +84,7 @@ public class LinearRegression {
                 init[i] = random.apply(-GENETIC_BOUND, GENETIC_BOUND);
             populations.add(new Vector(init));
         }
-        Function<Vector, Double> fitness = w -> {
-            double sum = 0d;
-            for (DataInstance flat : data) {
-                sum += Math.pow(w.get(0) + w.get(1) * flat.area + w.get(2) * flat.rooms - flat.prices, 2);
-            }
-            return Math.sqrt(sum / data.size());
-        };
+        Function<Vector, Double> fitness = w -> standardDeviation(data, w);
         BiFunction<Vector, Vector, Vector> crossover = (mother, father) -> {
             Vector son = new Vector(mother.getComponents());
             int n = mother.getDimensions();
@@ -132,15 +127,10 @@ public class LinearRegression {
                 }
             }
             populations = new ArrayList<>(newPopulation);
-
-
             i++;
-            // Collections.sort(populations, (o1, o2) -> fitness.apply(o1).compareTo(fitness.apply(o2)));;
-            //System.out.println(fitness.apply(populations.get(0)));
         } while (i < MAX_ITERATIONS);
         Collections.sort(populations, (o1, o2) -> fitness.apply(o1).compareTo(fitness.apply(o2)));
         return populations.get(0);
-
     }
 
     public static Vector solve(Data data, Params params) {
@@ -154,7 +144,7 @@ public class LinearRegression {
     }
 
     public static Vector gradientDescent(Data train, double epsilon, double step) {
-        double[][] components = new double[train.size()][2];
+        double[][] components = new double[train.size()][MARK_NUMBER];
         double[] y = new double[train.size()];
         for (int j = 0; j < train.size(); j++) {
             components[j][0] = train.get(j).area;
@@ -191,8 +181,7 @@ public class LinearRegression {
         return new Vector(w);
     }
 
-
-    public static Double score(Data data, Vector w) {
+    public static Double standardDeviation(Data data, Vector w) {
         double sum = 0d;
         for (DataInstance flat : data) {
             sum += Math.pow(w.get(0) + w.get(1) * flat.area + w.get(2) * flat.rooms - flat.prices, 2);
@@ -210,18 +199,8 @@ public class LinearRegression {
             Data train = new Data(trainCV.get(i).stream().map(j -> data.get(j)).collect(Collectors.toList()));
             Data test = new Data(testCV.get(i).stream().map(j -> data.get(j)).collect(Collectors.toList()));
 
-            Vector w = null;
-            switch (params.getMethod()) {
-                case GRADIENT_DESCENT: {
-                    w = gradientDescent(train, params.sizeOfPopulation, params.step);
-                    break;
-                }
-                case GENETIC: {
-                    w = genetic(train, params.sizeOfPopulation);
-                    break;
-                }
-            }
-            deviation += score(test, w);
+            Vector w = solve(train, params);
+            deviation += standardDeviation(test, w);
         }
         return deviation / trainCV.size();
     }

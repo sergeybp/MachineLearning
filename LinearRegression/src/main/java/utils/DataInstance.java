@@ -19,6 +19,18 @@ public class DataInstance {
         return area;
     }
 
+    public double getByName(String name) {
+        switch (name) {
+            case "area":
+                return area;
+            case "rooms":
+                return rooms;
+            case "prices":
+                return prices;
+        }
+        return 0d;
+    }
+
     public void setArea(double area) {
         this.area = area;
     }
