@@ -65,7 +65,11 @@ public class KNN {
                 queue.add(new Pair<>(d, tr.clazz));
                 if (biggestDistance < d) biggestDistance = d;
             }
+            PriorityQueue<Pair<Double, Integer>> tmp = new PriorityQueue<>(queue);
             double numZero = 0, numOne = 0;
+            for (int i = 0; i <= params.k; i++) {
+                 biggestDistance = tmp.poll().getKey();
+            }
             for (int i = 0; i < params.k; i++) {
                 Pair<Double, Integer> point = queue.poll();
                 double importance = params.kernel.get().apply(point.getKey() / biggestDistance);
