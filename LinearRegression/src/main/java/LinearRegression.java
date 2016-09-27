@@ -37,8 +37,8 @@ public class LinearRegression {
 
     private static final int DEFAULT_SIZE_OF_POPULATION = 50;
     private static final int MIN_SIZE_OF_POPULATION = 10;
-    private static final int MAX_SIZE_OF_POPULATION = 100;
-    private static final int SIZE_OF_POPULATION_STEP = 10;
+    private static final int MAX_SIZE_OF_POPULATION = 200;
+    private static final int SIZE_OF_POPULATION_STEP = 80;
 
     private static final double GENETIC_BOUND = 100_000d;
 
@@ -173,10 +173,11 @@ public class LinearRegression {
         Vector prevW;
         int t = 0;
         do {
+            t++;
             prevW = new Vector(w);
             Vector grad = newData.transponed().multiply(newData.multiply(prevW).subtract(answer)).multiply(2d / l);
-            w = prevW.subtract(grad.multiply(step));
-            t++;
+            w = prevW.subtract(grad.multiply(step / t));
+
         } while (new Vector(w).subtract(new Vector(prevW)).norm() >= epsilon && t < MAX_ITERATIONS);
         return new Vector(w);
     }

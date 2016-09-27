@@ -60,6 +60,7 @@ public class Main {
         draw(data, w, "rooms", "area");
     }
 
+
     private static void interactive(Data data, Params best) {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         while (true) {
@@ -81,8 +82,9 @@ public class Main {
                     String[] splitted = line.split(",");
                     int area = Integer.parseInt(splitted[0]);
                     int rooms = Integer.parseInt(splitted[1]);
-                    int price = Integer.parseInt(splitted[2]);
-                    data.add(area, rooms, price);
+                    Vector w = LinearRegression.solve(data, best);
+                    BiFunction<Integer, Integer, Object> regression = (x1, x2) -> w.get(1) * x1 + w.get(2) * x2 + w.get(0);
+                    System.out.println(regression.apply(area, rooms));
                 }
             }
         }
@@ -92,9 +94,9 @@ public class Main {
         Data data = LinearRegression.getDataFromFile(FILE);
         Params best = LinearRegression.learn(data);
         System.out.println(best.toString());
-        printResult(data, best);
+     //   printResult(data, best);
         interactive(data, best);
-        printAndDrawResult(data, best);
+       // printAndDrawResult(data, best);
     }
 
 
