@@ -8,6 +8,8 @@ import java.awt.*;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.URISyntaxException;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Random;
@@ -21,7 +23,7 @@ public class Main {
 
     public static Vector printResult(Data data, Params best) {
         Vector w = LinearRegression.solve(data, best);
-        System.out.println(String.format("Standard deviation = %.6f", LinearRegression.standardDeviation(data, w)));
+        System.out.println(String.format("Standard deviation = %.6f", Utils.standardDeviation(data, w)));
         System.out.println("w = " + LinearRegression.solve(data, best));
         return w;
     }
@@ -80,8 +82,8 @@ public class Main {
                 }
                 default: {
                     String[] splitted = line.split(",");
-                    int area = Integer.parseInt(splitted[0]);
-                    int rooms = Integer.parseInt(splitted[1]);
+                    int area = Integer.parseInt(splitted[0].trim());
+                    int rooms = Integer.parseInt(splitted[1].trim());
                     Vector w = LinearRegression.solve(data, best);
                     BiFunction<Integer, Integer, Object> regression = (x1, x2) -> w.get(1) * x1 + w.get(2) * x2 + w.get(0);
                     System.out.println(regression.apply(area, rooms));
@@ -91,12 +93,17 @@ public class Main {
     }
 
     public static void main(String[] args) {
-        Data data = LinearRegression.getDataFromFile(FILE);
+        Data data = null;
+        try {
+            data = Utils.getDataFromResource(Paths.get(Main.class.getResource(FILE).toURI()).toFile());
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
         Params best = LinearRegression.learn(data);
         System.out.println(best.toString());
      //   printResult(data, best);
-        interactive(data, best);
-       // printAndDrawResult(data, best);
+       // interactive(data, best);
+        printAndDrawResult(data, best);
     }
 
 

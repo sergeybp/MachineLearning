@@ -1,40 +1,42 @@
 package params;
 
+import optimizers.Optimizers;
+
 /**
  * Created by nikita on 23.09.16.
  */
 public class Params {
-    public Method method;
+    public Optimizers optimizers;
     public double epsilon;
     public double step;
     public int sizeOfPopulation;
     public double deviation;
 
-    public Params(Method method) {
-        this.method = method;
+    public Params(Optimizers optimizers) {
+        this.optimizers = optimizers;
     }
 
-    public Params(Method method, double epsilon, double step, int sizeOfPopulation) {
-        this.method = method;
+    public Params(Optimizers optimizers, double epsilon, double step, int sizeOfPopulation) {
+        this.optimizers = optimizers;
         this.epsilon = epsilon;
         this.step = step;
         this.sizeOfPopulation = sizeOfPopulation;
     }
 
-    public Params(Method method, double epsilon, double step, int sizeOfPopulation, double deviation) {
-        this.method = method;
+    public Params(Optimizers optimizers, double epsilon, double step, int sizeOfPopulation, double deviation) {
+        this.optimizers = optimizers;
         this.epsilon = epsilon;
         this.step = step;
         this.sizeOfPopulation = sizeOfPopulation;
         this.deviation = deviation;
     }
 
-    public Method getMethod() {
-        return method;
+    public Optimizers getOptimizers() {
+        return optimizers;
     }
 
-    public void setMethod(Method method) {
-        this.method = method;
+    public void setOptimizers(Optimizers optimizers) {
+        this.optimizers = optimizers;
     }
 
     public double getEpsilon() {
@@ -47,7 +49,7 @@ public class Params {
 
     @Override
     public String toString() {
-        switch (method) {
+        switch (optimizers) {
             case GRADIENT_DESCENT:
                 return String.format("Params: method = %s, deviation = %.6f, epsilon = %.10f, step = %.13f", "GRADIENT_DESCENT", deviation, epsilon, step);
             case GENETIC:

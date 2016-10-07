@@ -8,7 +8,6 @@ public class DataInstance {
     public double rooms;
     public double prices;
 
-
     public DataInstance(double area, double rooms, double prices) {
         this.area = area;
         this.rooms = rooms;
