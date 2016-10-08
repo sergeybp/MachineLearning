@@ -2,51 +2,25 @@ import javafx.util.Pair;
 import params.*;
 import utils.Data;
 import utils.DataInstance;
-import utils.FastScanner;
-import utils.Point;
+import utils.Utils;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
-import java.util.PriorityQueue;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 /**
  * Created by nikita on 13.09.16.
  */
 public class KNN {
     private Data data;
-    public final static int CROSS_VALIDATION_PARAM = 5;
-    public static int MIN_K = 5;
-    public static int MAX_K = 15;
-    public static int LEARN_STEP_OF_K = 1;
+    public final static int CV_PARAM = 5;
+    public final static int MIN_K = 5;
+    public final static int MAX_K = 15;
+    public final static int STEP_OF_K = 1;
 
-    public KNN(String file) {
-        this.data = getDataFromFile(file);
-    }
-
-    public static Data getDataFromFile(String file) {
-        InputStream is = null;
-        try {
-            is = new FileInputStream(file);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-        Data data = new Data();
-        FastScanner in = new FastScanner(is);
-        while (in.hasNext()) {
-            String line = in.nextLine();
-            String[] splitted = line.split(",");
-            double x = Double.parseDouble(splitted[0]);
-            double y = Double.parseDouble(splitted[1]);
-            int clazz = Integer.parseInt(splitted[2]);
-            data.add(new Point(x, y), clazz);
-        }
-        return data;
+    public KNN(File file) {
+        this.data = Utils.getDataFromFile(file);
     }
 
     public KNN(Data data) {
@@ -55,41 +29,43 @@ public class KNN {
 
     public static Data evaluate(Data train, Data test, Params params) {
         Data answer = new Data();
+
         test = params.transformation.get().to.apply(test);
         train = params.transformation.get().to.apply(train);
+
         for (DataInstance t : test) {
-            PriorityQueue<Pair<Double, Integer>> queue = new PriorityQueue<>((Comparator<Pair<Double, Integer>>) (o1, o2) -> o1.getKey().compareTo(o2.getKey()));
-            double biggestDistance = 0d;
-            for (DataInstance tr : train) {
-                double d = params.distance.get().apply(t.point, tr.point);
-                queue.add(new Pair<>(d, tr.clazz));
-                if (biggestDistance < d) biggestDistance = d;
-            }
-            PriorityQueue<Pair<Double, Integer>> tmp = new PriorityQueue<>(queue);
-            double numZero = 0, numOne = 0;
-            for (int i = 0; i <= params.k; i++) {
-                 biggestDistance = tmp.poll().getKey();
-            }
+
+            ArrayList<Pair<Double, Integer>> distances = new ArrayList<>();
+            for (DataInstance tr : train)
+                distances.add(new Pair<>(params.distance.get().apply(t.point, tr.point), tr.clazz));
+
+            Collections.sort(distances, (o1, o2) -> o1.getKey().compareTo(o2.getKey()));
+
+            double biggestDistance = distances.get(params.k + 1).getKey();
+            double[] voices = new double[train.numberOfClasses];
+
             for (int i = 0; i < params.k; i++) {
-                Pair<Double, Integer> point = queue.poll();
+                Pair<Double, Integer> point = distances.get(i);
                 double importance = params.kernel.get().apply(point.getKey() / biggestDistance);
-                if (point.getValue() == 0) numZero += importance;
-                else numOne += importance;
+                voices[point.getValue()] += importance;
             }
-            int clazz = numZero > numOne ? 0 : 1;
+
+            int clazz = Utils.findMaxIndex(voices);
             answer.add(t.point, clazz);
         }
         return params.transformation.get().from.apply(answer);
     }
 
     private double run(int s, Params params) {
-        Pair<ArrayList<ArrayList<Integer>>, ArrayList<ArrayList<Integer>>> cv = crossValidation(data.size(), s);
+        Pair<ArrayList<ArrayList<Integer>>, ArrayList<ArrayList<Integer>>> cv = Utils.crossValidation(data.size(), s);
         ArrayList<ArrayList<Integer>> trainCV = cv.getKey();
         ArrayList<ArrayList<Integer>> testCV = cv.getValue();
+
         double accuracy = 0d;
         for (int i = 0; i < trainCV.size(); i++) {
             Data train = new Data(trainCV.get(i).stream().map(j -> data.get(j)).collect(Collectors.toList()));
             Data test = new Data(testCV.get(i).stream().map(j -> data.get(j)).collect(Collectors.toList()));
+
             Data answer = evaluate(train, test, params);
 
             accuracy += params.measure.get().apply(test, answer);
@@ -99,43 +75,24 @@ public class KNN {
 
     public static Params learn(Data data, Measures measure) {
         Params params = new Params();
-        for (int k = MIN_K; k <= MAX_K; k += LEARN_STEP_OF_K) {
+
+        for (int k = MIN_K; k <= MAX_K; k += STEP_OF_K) {
             for (Distances distance : Distances.values()) {
                 for (Kernels kernel : Kernels.values()) {
                     for (SpaceTransformations transformation : SpaceTransformations.values()) {
-                        double result = new KNN(data).run(CROSS_VALIDATION_PARAM, new Params(distance, kernel, transformation, k, 0d, measure));
-                        if (params.accuracy < result) {
+
+                        double result = new KNN(data).run(CV_PARAM,
+                                new Params(distance, kernel, transformation, k, 0d, measure));
+
+                        if (params.accuracy < result)
                             params = new Params(distance, kernel, transformation, k, result, measure);
-                        }
                     }
                 }
             }
         }
+
         params.measure = measure;
         return params;
-    }
-
-    private Pair<ArrayList<ArrayList<Integer>>, ArrayList<ArrayList<Integer>>> crossValidation(int l, int s) {
-        int count = (int) Math.ceil(((double) (l)) / ((double) (s)));
-        ArrayList<Integer> index = new ArrayList<>(IntStream.range(0, l).boxed().collect(Collectors.toList()));
-        Collections.shuffle(index);
-        ArrayList<ArrayList<Integer>> trainIndies = new ArrayList<>();
-        ArrayList<ArrayList<Integer>> testIndices = new ArrayList<>();
-        for (int i = 0; i < l; i += count) {
-            ArrayList<Integer> tmpTrain = new ArrayList<>();
-            ArrayList<Integer> tmpTest = new ArrayList<>();
-            if (i + count < l) {
-                tmpTrain.addAll(index.subList(0, i));
-                tmpTrain.addAll(index.subList(i + count, index.size()));
-                tmpTest.addAll(index.subList(i, i + count));
-            } else {
-                tmpTrain.addAll(index.subList(0, i));
-                tmpTest.addAll(index.subList(i, index.size()));
-            }
-            trainIndies.add(tmpTrain);
-            testIndices.add(tmpTest);
-        }
-        return new Pair<>(trainIndies, testIndices);
     }
 
 }

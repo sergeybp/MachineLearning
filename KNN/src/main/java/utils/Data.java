@@ -11,6 +11,7 @@ import java.util.function.Consumer;
  */
 public class Data implements Iterable<DataInstance> {
     public ArrayList<DataInstance> instances;
+    public int numberOfClasses = 2;
 
     public Data() {
         this.instances = new ArrayList<>();

@@ -16,15 +16,17 @@ public class Graphics {
 
     public Graphics(String title, String xAxis, String yAxis) {
         chart = new XYChartBuilder().width(800).height(600).title(title).xAxisTitle(xAxis).yAxisTitle(yAxis).build();
-        chart.getStyler().setDefaultSeriesRenderStyle(XYSeries.XYSeriesRenderStyle.Scatter);
         chart.getStyler().setChartTitleVisible(true);
         chart.getStyler().setChartTitleFont(new Font("TimesRoman", Font.BOLD, 8));
         chart.getStyler().setLegendPosition(Styler.LegendPosition.InsideSW);
         chart.getStyler().setMarkerSize(5);
-
     }
 
-    public Graphics addGraphic(List<Point> points, String graphicName, Color color) {
+    public Graphics addScatterGraphic(List<Point> points, String graphicName, Color color) {
+        return addGraphic(points, graphicName, color, XYSeries.XYSeriesRenderStyle.Scatter);
+    }
+
+    public Graphics addGraphic(List<Point> points, String graphicName, Color color, XYSeries.XYSeriesRenderStyle style) {
         List<Double> xData = new LinkedList<>();
         List<Double> yData = new LinkedList<>();
         for (Point point : points) {
@@ -34,6 +36,7 @@ public class Graphics {
         XYSeries series = chart.addSeries(graphicName, xData, yData);
         series.setMarker(SeriesMarkers.SQUARE);
         series.setMarkerColor(color);
+        series.setXYSeriesRenderStyle(style);
         return this;
     }
 
