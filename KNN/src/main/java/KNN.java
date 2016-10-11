@@ -1,3 +1,5 @@
+import dividers.CVDivider;
+import dividers.Division;
 import javafx.util.Pair;
 import params.*;
 import utils.Data;
@@ -7,7 +9,6 @@ import utils.Utils;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.stream.Collectors;
 
 /**
  * Created by nikita on 13.09.16.
@@ -57,20 +58,14 @@ public class KNN {
     }
 
     private double run(int s, Params params) {
-        Pair<ArrayList<ArrayList<Integer>>, ArrayList<ArrayList<Integer>>> cv = Utils.crossValidation(data.size(), s);
-        ArrayList<ArrayList<Integer>> trainCV = cv.getKey();
-        ArrayList<ArrayList<Integer>> testCV = cv.getValue();
+        CVDivider divider = new CVDivider(data, s);
 
         double accuracy = 0d;
-        for (int i = 0; i < trainCV.size(); i++) {
-            Data train = new Data(trainCV.get(i).stream().map(j -> data.get(j)).collect(Collectors.toList()));
-            Data test = new Data(testCV.get(i).stream().map(j -> data.get(j)).collect(Collectors.toList()));
-
-            Data answer = evaluate(train, test, params);
-
-            accuracy += params.measure.get().apply(test, answer);
+        for (Division div: divider) {
+            Data answer = evaluate(div.train, div.test, params);
+            accuracy += params.measure.get().apply(div.test, answer);
         }
-        return accuracy / trainCV.size();
+        return accuracy / divider.size();
     }
 
     public static Params learn(Data data, Measures measure) {

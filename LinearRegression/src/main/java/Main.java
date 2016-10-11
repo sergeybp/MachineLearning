@@ -95,7 +95,7 @@ public class Main {
     public static void main(String[] args) {
         Data data = null;
         try {
-            data = Utils.getDataFromResource(Paths.get(Main.class.getResource(FILE).toURI()).toFile());
+            data = Utils.getDataFromFile(Paths.get(Main.class.getResource(FILE).toURI()).toFile());
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }

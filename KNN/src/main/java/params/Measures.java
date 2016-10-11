@@ -31,7 +31,7 @@ public enum Measures {
                 return (real, answer) -> {
                     double result = 0d;
                     for (int i = 0; i < real.size(); i++) {
-                        if (real.get(i).getClazz().equals(answer.get(i).getClazz()))
+                        if (real.get(i).clazz.equals(answer.get(i).clazz))
                             result += 1;
 
                     }
@@ -41,7 +41,7 @@ public enum Measures {
                 return (real, answer) -> {
                     int[][] flags = new int[2][2];
                     for (int i = 0; i < real.size(); i++) {
-                        flags[answer.get(i).getClazz()][real.get(i).getClazz()]++;
+                        flags[answer.get(i).clazz][real.get(i).clazz]++;
                     }
                     if (flags[1][1] == 0) {
                         return 0d;

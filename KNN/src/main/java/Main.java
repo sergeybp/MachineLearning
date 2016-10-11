@@ -23,16 +23,16 @@ public class Main {
     private static void draw(Data data, Params params) {
         double scale = SCALE;
 
-        Comparator<DataInstance> comparatorX = (o1, o2) -> ((Double) ((Point) o1.getPoint()).x).compareTo(((Point) o2.getPoint()).x);
-        Comparator<DataInstance> comparatorY = (o1, o2) -> ((Double) ((Point) o1.getPoint()).y).compareTo(((Point) o2.getPoint()).y);
+        Comparator<DataInstance> comparatorX = (o1, o2) -> ((Double) ((Point) o1.point).x).compareTo(((Point) o2.point).x);
+        Comparator<DataInstance> comparatorY = (o1, o2) -> ((Double) ((Point) o1.point).y).compareTo(((Point) o2.point).y);
 
-        double minX = ((Point) Collections.min(data.instances, comparatorX).getPoint()).x - scale;
+        double minX = ((Point) Collections.min(data.instances, comparatorX).point).x - scale;
 
-        double maxX = ((Point) Collections.max(data.instances, comparatorX).getPoint()).x + scale;
+        double maxX = ((Point) Collections.max(data.instances, comparatorX).point).x + scale;
 
-        double minY = ((Point) Collections.min(data.instances, comparatorY).getPoint()).y - scale;
+        double minY = ((Point) Collections.min(data.instances, comparatorY).point).y - scale;
 
-        double maxY = ((Point) Collections.max(data.instances, comparatorY).getPoint()).y + scale;
+        double maxY = ((Point) Collections.max(data.instances, comparatorY).point).y + scale;
 
         double step = STEP;
 

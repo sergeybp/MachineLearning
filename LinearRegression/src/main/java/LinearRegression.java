@@ -1,4 +1,5 @@
-import javafx.util.Pair;
+import dividers.CVDivider;
+import dividers.Division;
 import optimizers.Optimizer;
 import optimizers.Optimizers;
 import params.Params;
@@ -7,10 +8,8 @@ import utils.Utils;
 import utils.Vector;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.stream.Collectors;
 
-import static optimizers.Optimizers.*;
+import static optimizers.Optimizers.GRADIENT_DESCENT;
 
 /**
  * Created by nikita on 13.09.16.
@@ -33,12 +32,12 @@ public class LinearRegression {
     private final static int MAX_POPULATION = 120;
     private final static int POPULATION_STEP = 10;
 
-    private final static int MAX_ITERATIONS = 1000;
+    private final static int MAX_ITERATIONS = 1_000;
 
     private Data data;
 
     public LinearRegression(File file) {
-        this.data = Utils.getDataFromResource(file);
+        this.data = Utils.getDataFromFile(file);
     }
 
     public LinearRegression(Data data) {
@@ -46,20 +45,16 @@ public class LinearRegression {
     }
 
     private double run(int s, Params params) {
-        Pair<ArrayList<ArrayList<Integer>>, ArrayList<ArrayList<Integer>>> cv = Utils.crossValidation(data.size(), s);
-        ArrayList<ArrayList<Integer>> trainCV = cv.getKey();
-        ArrayList<ArrayList<Integer>> testCV = cv.getValue();
-
+        CVDivider divider = new CVDivider(data, s);
         double deviation = 0d;
-        for (int i = 0; i < trainCV.size(); i++) {
-            Data train = new Data(trainCV.get(i).stream().map(j -> data.get(j)).collect(Collectors.toList()));
-            Data test = new Data(testCV.get(i).stream().map(j -> data.get(j)).collect(Collectors.toList()));
 
-            Vector w = solve(train, params);
+        for (Division div: divider) {
+            Vector w = solve(div.train, params);
 
-            deviation += Utils.standardDeviation(test, w);
+            deviation += Utils.standardDeviation(div.test, w);
         }
-        return deviation / trainCV.size();
+
+        return deviation / divider.size();
     }
 
     public static Vector solve(Data data, Params params) {

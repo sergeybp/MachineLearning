@@ -11,20 +11,4 @@ public class DataInstance {
         this.point = point;
         this.clazz = clazz;
     }
-
-    public PointND getPoint() {
-        return point;
-    }
-
-    public void setPoint(PointND point) {
-        this.point = point;
-    }
-
-    public Integer getClazz() {
-        return clazz;
-    }
-
-    public void setClazz(Integer clazz) {
-        this.clazz = clazz;
-    }
 }

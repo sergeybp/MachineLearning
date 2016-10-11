@@ -14,10 +14,6 @@ public class DataInstance {
         this.prices = prices;
     }
 
-    public double getArea() {
-        return area;
-    }
-
     public double getByName(String name) {
         switch (name) {
             case "area":
@@ -28,25 +24,5 @@ public class DataInstance {
                 return prices;
         }
         return 0d;
-    }
-
-    public void setArea(double area) {
-        this.area = area;
-    }
-
-    public double getRooms() {
-        return rooms;
-    }
-
-    public void setRooms(double rooms) {
-        this.rooms = rooms;
-    }
-
-    public double getPrices() {
-        return prices;
-    }
-
-    public void setPrices(double prices) {
-        this.prices = prices;
     }
 }

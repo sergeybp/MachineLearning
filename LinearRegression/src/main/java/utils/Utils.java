@@ -1,16 +1,10 @@
 package utils;
 
-import javafx.util.Pair;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Random;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 /**
  * Created by nikita on 08.10.16.
@@ -31,7 +25,7 @@ public class Utils {
 
     }
 
-    public static Data getDataFromResource(File file) {
+    public static Data getDataFromFile(File file) {
         InputStream is = null;
         try {
             is = new FileInputStream(file);
@@ -49,29 +43,6 @@ public class Utils {
             data.add(area, rooms, price);
         }
         return data;
-    }
-
-    public static Pair<ArrayList<ArrayList<Integer>>, ArrayList<ArrayList<Integer>>> crossValidation(int l, int s) {
-        int count = (int) Math.ceil(((double) (l)) / ((double) (s)));
-        ArrayList<Integer> index = new ArrayList<>(IntStream.range(0, l).boxed().collect(Collectors.toList()));
-        Collections.shuffle(index);
-        ArrayList<ArrayList<Integer>> trainIndies = new ArrayList<>();
-        ArrayList<ArrayList<Integer>> testIndices = new ArrayList<>();
-        for (int i = 0; i < l; i += count) {
-            ArrayList<Integer> tmpTrain = new ArrayList<>();
-            ArrayList<Integer> tmpTest = new ArrayList<>();
-            if (i + count < l) {
-                tmpTrain.addAll(index.subList(0, i));
-                tmpTrain.addAll(index.subList(i + count, index.size()));
-                tmpTest.addAll(index.subList(i, i + count));
-            } else {
-                tmpTrain.addAll(index.subList(0, i));
-                tmpTest.addAll(index.subList(i, index.size()));
-            }
-            trainIndies.add(tmpTrain);
-            testIndices.add(tmpTest);
-        }
-        return new Pair<>(trainIndies, testIndices);
     }
 
 }
