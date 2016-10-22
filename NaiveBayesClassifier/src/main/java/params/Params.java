@@ -20,7 +20,7 @@ public class Params {
     public Params(Data data) {
         this.classNumber = Data.CLASS_NUMBER;
         priorProbability = new PriorProbability(data);
-        likelihoodFunction = new LikelihoodFunction(data);
+        likelihoodFunction = new LikelihoodFunction(data, true);
     }
 
     public Params(int classNumber, PriorProbability priorProbability, LikelihoodFunction likelihoodFunction) {

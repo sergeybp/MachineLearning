@@ -28,21 +28,30 @@ public class Main {
 
         int classifiedHams = 0;
         int totalOfHams = 0;
+        int classifiedSpams = 0;
+        int totalOfSpams = 0;
 
         assert data != null;
 
         for (Data data1: data) {
             for (DataInstance mail : data1) {
-                Classes clazz = NaiveBayesClassifier.classify(mail, params);
+                Classes clazz = NaiveBayesClassifier.classify(mail, params, false);
                 if (mail.clazz == Classes.HAM) {
                     totalOfHams++;
                     if (clazz == Classes.HAM)
                         classifiedHams++;
                 }
+                if (mail.clazz == Classes.SPAM) {
+                    totalOfSpams++;
+                    if (clazz == Classes.SPAM)
+                        classifiedSpams++;
+                }
             }
         }
         System.out.println("Classified hams: " + classifiedHams);
         System.out.println("Total hams: " + totalOfHams);
+        System.out.println("Classified spams: " + classifiedSpams);
+        System.out.println("Total spams: " + totalOfSpams);
 
     }
 

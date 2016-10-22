@@ -19,6 +19,8 @@ import java.util.stream.Collectors;
  */
 public class Utils {
 
+    public final static int SCALE = 500;
+
     public static ArrayList<Data> getDataFromFile(Path path) {
         ArrayList<Data> data = new ArrayList<>();
         try {
