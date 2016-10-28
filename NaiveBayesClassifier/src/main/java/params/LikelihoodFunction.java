@@ -65,13 +65,12 @@ public class LikelihoodFunction {
             for (String word: mail.title) {
                 HashMap<String, Double> map = likelihood.get(mail.clazz.get());
                 if (map.containsKey(word)) {
-                    map.put(word, map.get(word) + 2d);
-                } else map.put(word, 2d);
+                    map.put(word, map.get(word) + 5d);
+                } else map.put(word, 5d);
             }
         }
 
         int words = likelihood.stream().mapToInt(x -> x.keySet().size()).sum();
-
 
         for (int i = 0; i < Data.CLASS_NUMBER; i++) {
             totals.add(likelihood.get(i).values().stream().mapToDouble(x -> x).sum());
