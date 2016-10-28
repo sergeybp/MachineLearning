@@ -54,6 +54,7 @@ public class SMO {
         Random random = new Random();
         int passes = 0;
         while (passes < params.maxPasses) {
+           // System.out.println(params);
             int numChangedAlphas = 0;
             for (int i = 0; i < m; i++) {
                 DataInstance x = train.get(i);

@@ -21,8 +21,8 @@ public class SVM {
     private Data data;
     public final static int CV_PARAM = 5;
 
-    public final static double MIN_C = 50;
-    public final static double MAX_C = 50;
+    public final static double MIN_C = 60;
+    public final static double MAX_C = 60;
     public final static double STEP_OF_C = 10;
 
     public final static double MIN_TOL = 1E-3;

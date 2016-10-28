@@ -1,7 +1,11 @@
+import classifiers.knn.KNN;
+import classifiers.knn.params.KNNParams;
 import classifiers.params.Classes;
 import classifiers.params.Measures;
 import classifiers.svm.SVM;
 import classifiers.svm.params.SVMParams;
+import dividers.CVDivider;
+import dividers.Division;
 import utils.*;
 import utils.Graphics;
 import utils.Point;
@@ -9,10 +13,12 @@ import utils.Point;
 import java.awt.*;
 import java.net.URISyntaxException;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Created by nikita on 16.09.16.
@@ -66,6 +72,24 @@ public class Main {
                     .collect(Collectors.toList());
     }
 
+    private static class Score implements Comparable<Score> {
+        public double value;
+        public String method;
+        public int index;
+
+        public Score(double value, String method, int index) {
+            this.value = value;
+            this.method = method;
+            this.index = index;
+        }
+
+        @Override
+        public int compareTo(Score o) {
+            return Double.compare(this.value, o.value);
+        }
+
+    }
+
     public static void main(String[] args) {
         Data data = null;
         try {
@@ -74,8 +98,51 @@ public class Main {
             e.printStackTrace();
         }
 
+        assert data != null;
+
         SVMParams svmParams = SVM.learn(data, Measures.F1SCORE);
-        System.out.print(svmParams);
-        draw(data, svmParams);
+        KNNParams knnParams = KNN.learn(data, Measures.F1SCORE);
+
+        System.out.println(knnParams);
+        System.out.println(svmParams);
+
+        CVDivider divider = new CVDivider(data, 8);
+
+        ArrayList<Score> knnScores = new ArrayList<>();
+        ArrayList<Score> svmScores = new ArrayList<>();
+
+        int i = 0;
+        for (Division div: divider) {
+            Data answer = KNN.evaluate(div.train, div.test, knnParams);
+            knnScores.add(new Score(knnParams.measure.get().apply(div.test, answer), "KNN", i));
+            answer = SVM.evaluate(div.train, div.test, svmParams);
+            svmScores.add(new Score(svmParams.measure.get().apply(div.test, answer), "SVM", i));
+            i++;
+        }
+        int n = knnScores.size();
+        int m = n;
+        System.out.println("n = m = " + m);
+
+        ArrayList<Score> var = new ArrayList<>(Stream.concat(knnScores.stream(), svmScores.stream()).collect(Collectors.toList()));
+        Collections.sort(var);
+
+        ArrayList<Integer> rx = new ArrayList<>(knnScores.stream().map(var::indexOf).collect(Collectors.toList()));
+        ArrayList<Integer> ry = new ArrayList<>(svmScores.stream().map(var::indexOf).collect(Collectors.toList()));
+
+        double Rx = rx.stream().mapToDouble(x -> x).sum();
+        double Ry = ry.stream().mapToDouble(x -> x).sum();
+        double W = Rx;
+        System.out.println("W = " + W);
+        double alpha = 0.05; // importance
+        double Fa = 1.960; //  quantile (1-a/2) of standard normal distribution
+        double Wc = (W - m * (m + n + 1d) / 2d) / (Math.sqrt(m * n * (m + n + 1d) / 12d));
+        System.out.println("Wc = " + Math.abs(Wc) + "  ?>=  " + Fa);
+
+        double Wcx = 0.5 * Wc  * (1d + Math.sqrt((n + n - 2d) / (n + m - 1d - Wc * Wc)));
+
+        double xa = 1.645; // quantile (1-a) of standard normal distribution
+        double ya = 2.1448; // quantile (1-a) of Student distribution of (n + m - 2) degree
+        System.out.println("Wcx = " + Math.abs(Wcx) + "  ?>=  " + (xa + ya) / 2d);
+       // draw(data, svmParams);
     }
 }
