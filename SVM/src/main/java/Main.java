@@ -100,30 +100,58 @@ public class Main {
 
         assert data != null;
 
-        SVMParams svmParams = SVM.learn(data, Measures.F1SCORE);
+
         KNNParams knnParams = KNN.learn(data, Measures.F1SCORE);
+        SVMParams svmParams = SVM.learn(data, Measures.F1SCORE);
+
+        //draw(data, svmParams);
 
         System.out.println(knnParams);
         System.out.println(svmParams);
 
+        System.out.println("--------------------------------------------");
+        System.out.println("H0: KNN = SVM\nH1: KNN != SVM");
+
         CVDivider divider = new CVDivider(data, 8);
 
-        ArrayList<Score> knnScores = new ArrayList<>();
         ArrayList<Score> svmScores = new ArrayList<>();
+        ArrayList<Score> knnScores = new ArrayList<>();
 
         int i = 0;
+        Division D = divider.divided.get(0);
+        Data answerD = KNN.evaluate(D.train, D.test, knnParams);
+        double knnDError = knnParams.measure.get().apply(D.test, answerD);
+      //  ConfusionMatrix matrixD = new ConfusionMatrix(D.test, answerD);
+
+        double knnP = 0d;
+
         for (Division div: divider) {
+
             Data answer = KNN.evaluate(div.train, div.test, knnParams);
-            knnScores.add(new Score(knnParams.measure.get().apply(div.test, answer), "KNN", i));
+
+        //    ConfusionMatrix matrixAnswer = new ConfusionMatrix(div.test, answer);
+            Score knnScore = new Score(knnParams.measure.get().apply(div.test, answer), "KNN", i);
+
+            knnScores.add(knnScore);
             answer = SVM.evaluate(div.train, div.test, svmParams);
-            svmScores.add(new Score(svmParams.measure.get().apply(div.test, answer), "SVM", i));
+
+            if (knnScore.value >= knnDError) {
+                knnP++;
+            }
+
+            Score svmScore = new Score(svmParams.measure.get().apply(div.test, answer), "SVM", i);
+            svmScores.add(svmScore);
             i++;
         }
+
+        knnP /= (divider.size() + 2);
+
         int n = knnScores.size();
         int m = n;
         System.out.println("n = m = " + m);
-
+        System.out.println("KNN p-value: " + knnP);
         ArrayList<Score> var = new ArrayList<>(Stream.concat(knnScores.stream(), svmScores.stream()).collect(Collectors.toList()));
+
         Collections.sort(var);
 
         ArrayList<Integer> rx = new ArrayList<>(knnScores.stream().map(var::indexOf).collect(Collectors.toList()));
@@ -143,6 +171,35 @@ public class Main {
         double xa = 1.645; // quantile (1-a) of standard normal distribution
         double ya = 2.1448; // quantile (1-a) of Student distribution of (n + m - 2) degree
         System.out.println("Wcx = " + Math.abs(Wcx) + "  ?>=  " + (xa + ya) / 2d);
-       // draw(data, svmParams);
+
+        /*ArrayList<Pair<Score, Score>> samples = new ArrayList<>();
+        for (i = 0; i < n; i++) {
+            if (Math.abs(knnScores.get(i).value - svmScores.get(i).value) >= 1E-8)
+                samples.add(new Pair<>(knnScores.get(i), svmScores.get(i)));
+        }
+
+        ArrayList<Pair<Score, Score>> var = new ArrayList<>(samples);
+
+        Collections.sort(var, (o1, o2) -> {
+            double a = Math.abs(o1.getValue().value - o1.getKey().value);
+            double b = Math.abs(o2.getValue().value - o2.getKey().value);
+            return Double.compare(a, b);
+        });
+
+        Function<Double, Integer> sgn = x -> {
+            if (x > 0d) return 1;
+            if (x < 0d) return -1;
+            return 0;
+        };
+
+        ArrayList<Integer> ranks = new ArrayList<>(samples.stream().map((o) -> var.indexOf(o) + 1).collect(Collectors.toList()));
+        double W = 0d;
+        for (i = 0; i < samples.size(); i++) {
+            W += sgn.apply(samples.get(i).getValue().value - samples.get(i).getKey().value) * ranks.get(i);
+        }
+        System.out.println("Nr = " + samples.size());
+        System.out.println("|W| = " + Math.abs(W) + "  ?>=  " + "Critical = "  + 36);
+*/
+
     }
 }

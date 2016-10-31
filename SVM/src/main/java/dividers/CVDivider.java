@@ -15,7 +15,7 @@ import java.util.stream.IntStream;
  * Created by nikita on 11.10.16.
  */
 public class CVDivider extends Divider {
-    private ArrayList<Division> divided;
+    public ArrayList<Division> divided;
 
     public CVDivider(Data data, int cvSize) {
         super(data);

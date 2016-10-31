@@ -34,7 +34,7 @@ public enum SVMKernels {
                 return PointND::scalarProduct;
             case QUADRIC:
                 return (a, b) -> Math.pow(a.scalarProduct(b), 2d);
-            /*case POLINOMIAL:
+            case POLINOMIAL:
                 return (a, b) -> Math.pow(a.scalarProduct(b) + 1d, 3d);*/
             case GAUSSIAN:
                 return (a, b) -> Math.exp(-Math.pow(Distances.EUCLIDEAN.get().apply(a, b), 2d) / 2d);

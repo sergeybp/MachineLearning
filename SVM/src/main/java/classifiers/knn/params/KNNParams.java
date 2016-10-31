@@ -34,6 +34,6 @@ public class KNNParams {
 
     @Override
     public String toString() {
-        return String.format("Params: k = %d, kernel = %s, distance = %s, space tranformation = %s, accuracy measure = %s with value = %.6f", k, kernel, distance, transformation, measure, accuracy);
+        return String.format("KNN params: k = %d, kernel = %s, distance = %s, space tranformation = %s, accuracy measure = %s with value = %.6f", k, kernel, distance, transformation, measure, accuracy);
     }
 }

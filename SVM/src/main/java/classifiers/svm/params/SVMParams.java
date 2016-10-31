@@ -33,6 +33,6 @@ public class SVMParams {
 
     @Override
     public String toString() {
-        return String.format("Params: kernel = %s, c = %.5f, tol = %.5f, maxPasses = %d, accuracy = %.5f with measure %s", kernel, c, tol, maxPasses, accuracy, measure);
+        return String.format("SVM params: kernel = %s, c = %.5f, tol = %.5f, maxPasses = %d, accuracy measure = %s with value = %.5f", kernel, c, tol, maxPasses, measure, accuracy);
     }
 }
