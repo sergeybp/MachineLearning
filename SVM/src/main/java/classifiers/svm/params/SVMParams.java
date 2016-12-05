@@ -1,11 +1,12 @@
 package classifiers.svm.params;
 
 import classifiers.params.Measures;
+import classifiers.params.Params;
 
 /**
  * Created by nikita on 17.09.16.
  */
-public class SVMParams {
+public class SVMParams extends Params {
     public SVMKernels kernel;
     public double accuracy;
     public Measures measure;

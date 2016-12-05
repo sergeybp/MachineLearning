@@ -57,7 +57,7 @@ public class Main {
         graphics.addGraphic(points, "test", Color.green, XYSeries.XYSeriesRenderStyle.Scatter);
 
         points.clear();
-        for (double p = minX; p < maxX; p += 0.05) {
+        for (double p = minX; p < maxX; p += 0.025) {
             points.add((KernelNonparametricRegression.evaluate(new DataInstance(new Point(p, 0d)), kernelBest).point));
         }
 

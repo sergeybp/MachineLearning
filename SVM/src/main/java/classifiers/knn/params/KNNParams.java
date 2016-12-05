@@ -2,11 +2,12 @@ package classifiers.knn.params;
 
 import classifiers.params.Distances;
 import classifiers.params.Measures;
+import classifiers.params.Params;
 
 /**
  * Created by nikita on 17.09.16.
  */
-public class KNNParams {
+public class KNNParams extends Params {
     public Distances distance;
     public KNNKernels kernel;
     public int k;

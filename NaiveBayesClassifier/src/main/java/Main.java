@@ -35,7 +35,7 @@ public class Main {
 
         for (Data data1: data) {
             for (DataInstance mail : data1) {
-                Classes clazz = NaiveBayesClassifier.classify(mail, params, false);
+                Classes clazz = NaiveBayesClassifier.classify(mail, params, true                                );
                 if (mail.clazz == Classes.HAM) {
                     totalOfHams++;
                     if (clazz == Classes.HAM)

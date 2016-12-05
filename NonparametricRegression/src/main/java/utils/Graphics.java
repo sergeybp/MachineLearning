@@ -20,7 +20,6 @@ public class Graphics {
         chart.getStyler().setChartTitleFont(new Font("TimesRoman", Font.BOLD, 8));
         chart.getStyler().setLegendPosition(Styler.LegendPosition.InsideSW);
         chart.getStyler().setMarkerSize(5);
-
     }
 
     public Graphics addGraphic(List<Point> points, String graphicName, Color color, XYSeries.XYSeriesRenderStyle style) {

@@ -72,12 +72,14 @@ public class RobustNonparametricRegression {
                 }
                 as[i] = Math.abs(pi.y - (sum1 / sum2));
             }
+
             double[] var = Arrays.copyOf(as, as.length);
             double med;
             if (l % 2 == 0) {
                 med = (var[(l - 1) / 2] + var[(l - 1) / 2 + 1]) / 2d;
             } else med = var[(l - 1) / 2];
             Arrays.sort(var);
+
             for (int i = 0; i < l; i++) {
                 gammas[i] = Kernels.QUARTIC.get().apply(Math.abs(as[i]) / (6 * med));
             }
@@ -90,10 +92,12 @@ public class RobustNonparametricRegression {
     public static DataInstance evaluate(DataInstance point, RobustRegressionParams params) {
         double sum1 = 0d;
         double sum2 = 0d;
+
         ArrayList<Double> distances = new ArrayList<>();
         for (DataInstance tr : params.train)
             distances.add(Math.abs(point.point.x - tr.point.x));
         Collections.sort(distances, Double::compareTo);
+
         double h = distances.get(params.k + 1);
 
         for (int i = 0; i < params.train.size(); i++) {

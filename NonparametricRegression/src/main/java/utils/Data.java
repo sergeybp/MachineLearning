@@ -16,8 +16,6 @@ public class Data implements Iterable<DataInstance> {
         this.instances = new ArrayList<>();
     }
 
-
-
     public Data(List<DataInstance> instances) {
         this.instances = new ArrayList<>(instances);
     }
