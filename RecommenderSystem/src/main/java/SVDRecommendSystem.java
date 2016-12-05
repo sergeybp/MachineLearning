@@ -1,12 +1,13 @@
 import params.Params;
-import utils.Data;
 import utils.DataInstance;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Random;
+import java.util.stream.DoubleStream;
 
 /**
  * Created by nikita on 24.11.16.
@@ -16,6 +17,8 @@ public class SVDRecommendSystem {
     private File file;
     private File validation;
     private boolean VALIDATION;
+
+    public static final double MU = 3.6033;
 
     public static final int MAX_ITERATIONS = 20;
     public static final double EPSILON = 1E-4;
@@ -32,9 +35,9 @@ public class SVDRecommendSystem {
 
     public SVDRecommendSystem(File file) {
         this.file = file;
-        this.VALIDATION = false; 
+        this.VALIDATION = false;
     }
-    
+
     public void setValidation(File validation) {
         this.validation = validation;
         this.VALIDATION = true;
@@ -63,67 +66,82 @@ public class SVDRecommendSystem {
     public Params solve(Params params) {
         Main.logger.debug("Solving with params: {}", params.toString());
 
-        double rmse = 0;
-        double prevRMSE = 1;
+        double error = 0;
+        double prevError = 1;
 
-        Params newParams = new Params();
-        newParams.f = params.f;
-        newParams.lambda1 = params.lambda1;
-        newParams.lambda2 = params.lambda2;
-        newParams.gamma = params.gamma;
-        newParams.mu = params.mu;
+        Params newParams = new Params(params.lambda, params.f, params.gamma, params.mu);
 
         int i = 0;
-        while (i < MAX_ITERATIONS && Math.abs(rmse - prevRMSE) > EPSILON) {
+        while (i < MAX_ITERATIONS && Math.abs(error - prevError) > EPSILON) {
             int size = 0;
             try (BufferedReader br = new BufferedReader(new FileReader(file))) {
                 String line = br.readLine();
-                prevRMSE = rmse;
-                rmse = 0;
                 while ((line = br.readLine()) != null) {
                     String[] splitted = line.split(",");
-                    DataInstance instance;
-                    {
-                        long userID = Long.parseLong(splitted[0].trim());
-                        long itemID = Long.parseLong(splitted[1].trim());
-                        int rate = Integer.parseInt(splitted[2].trim());
-                        newParams.pu.putIfAbsent(userID, SVDRecommendSystem.getRandomArray(newParams.f));
-                        newParams.qi.putIfAbsent(itemID, SVDRecommendSystem.getRandomArray(newParams.f));
-                        newParams.bu.putIfAbsent(userID, 0d);
-                        newParams.bi.putIfAbsent(itemID, 0d);
-                        instance = new DataInstance(userID, itemID, rate);
-                    }
+
+                    long userID = Long.parseLong(splitted[0].trim());
+                    long itemID = Long.parseLong(splitted[1].trim());
+                    int rate = Integer.parseInt(splitted[2].trim());
+
+                    newParams.pu.putIfAbsent(userID, SVDRecommendSystem.getRandomArray(newParams.f));
+                    newParams.qi.putIfAbsent(itemID, SVDRecommendSystem.getRandomArray(newParams.f));
+                    newParams.bu.putIfAbsent(userID, 0d);
+                    newParams.bi.putIfAbsent(itemID, 0d);
+                    newParams.ratings.putIfAbsent(userID, new HashMap<>());
+                    newParams.ratings.get(userID).putIfAbsent(itemID, rate);
+
                     size++;
 
-                    long item = instance.itemID, user = instance.userID;
-                    int rate = instance.rate;
-                    double cbu = newParams.bu.get(user), cbi = newParams.bi.get(item);
-                    double[] cqi = newParams.qi.get(item), cpu = newParams.pu.get(user);
-                    double predictedRate = newParams.mu + cbi + cbu + SVDRecommendSystem.dotProduct(cqi, cpu);
-                    double error = rate - predictedRate;
-                    rmse += error * error;
-                    newParams.bu.put(user, cbu + newParams.gamma * (error - newParams.lambda1 * cbu));
-                    newParams.bi.put(item, cbi + newParams.gamma * (error - newParams.lambda1 * cbi));
+                    double cbu = newParams.bu.get(userID), cbi = newParams.bi.get(itemID);
+                    double[] cqi = newParams.qi.get(itemID), cpu = newParams.pu.get(userID);
+
+                    double predictedRate = newParams.mu + cbi + cbu + dotProduct(cqi, cpu);
+                    double e = rate - predictedRate;
+
+                    newParams.bu.put(userID, cbu + newParams.gamma * (e - newParams.lambda * cbu));
+                    newParams.bi.put(itemID, cbi + newParams.gamma * (e - newParams.lambda * cbi));
 
                     for (int k = 0; k < newParams.f; k++) {
                         double qi = cqi[k], pu = cpu[k];
-                        cqi[k] = qi + newParams.gamma * (error * pu - newParams.lambda2 * qi);
-                        cpu[k] = pu + newParams.gamma * (error * qi - newParams.lambda2 * pu);
+                        cqi[k] = qi + newParams.gamma * (e * pu - newParams.lambda * qi);
+                        cpu[k] = pu + newParams.gamma * (e * qi - newParams.lambda * pu);
                     }
                 }
+                newParams.gamma *= 0.9;
+
+                prevError = error;
+                error = countError(newParams);
 
             } catch (IOException ex) {
                 Main.logger.error("Check file: {}", file);
                 ex.printStackTrace();
             }
-            rmse = Math.sqrt(rmse / size);
-            Main.logger.debug("Iteration {}, RMSE: {}, diff: {}, step: {}", i, rmse, prevRMSE - rmse, newParams.gamma);
-            // newParams.gamma *= 0.7;
+            Main.logger.debug("Iteration {}, Error: {}, diff: {}, step: {}", i, error, prevError - error, newParams.gamma);
             i++;
         }
-        newParams.rmse = rmse;
+        newParams.error = error;
         return newParams;
 
+    }
+
+    private double countError(Params params) {
+        Main.logger.debug("Counting error...");
+        double error = 0d;
+        for (Long userId : params.ratings.keySet()) {
+            for (Long itemId : params.ratings.get(userId).keySet()) {
+                DataInstance instance = new DataInstance(userId, itemId, params.ratings.get(userId).get(itemId));
+                double predictedRate = getRate(instance, params);
+                double diff = instance.rate - predictedRate;
+                error += diff * diff;
+                error += params.lambda * (normSqr(params.pu.get(userId)) + normSqr(params.qi.get(itemId)) +
+                        Math.pow(params.bu.get(userId), 2) + Math.pow(params.bi.get(itemId), 2));
+            }
+        }
+        return error;
+    }
+
+    private double normSqr(double[] x) {
+        return DoubleStream.of(x).map(v -> v * v).sum();
     }
 
     public static int getRate(DataInstance instance, Params params) {
@@ -136,15 +154,6 @@ public class SVDRecommendSystem {
         if (rate < 1) return 1;
         if (rate > 5) return 5;
         return rate;
-    }
-
-    public static double RMSE(Data test, Params params) {
-        double result = 0d;
-        for (DataInstance instance: test) {
-            double e = getRate(instance, params) - instance.rate;
-            result += e * e;
-        }
-        return Math.sqrt(result / test.size());
     }
 
     private double run(Params params) {
@@ -170,33 +179,24 @@ public class SVDRecommendSystem {
             }
             return Math.sqrt(rmse / size);
         }
-        return result.rmse;
-        
+        return result.error;
+
     }
 
     public Params learn() {
         Main.logger.debug("Start learning...");
 
         Params params = new Params();
-        params.rmse = Double.MAX_VALUE;
-        params.mu = 3.6033;
+        params.error = Double.MAX_VALUE;
+        params.mu = MU;
 
-        for (double lambda1 = MIN_LAMBDA; lambda1 <= MAX_LAMBDA; lambda1 += STEP_LAMBDA) {
-            for (double lambda2 = MIN_LAMBDA; lambda2 <= MIN_LAMBDA; lambda2 += STEP_LAMBDA) {
-                for (int f = MIN_F; f <= MAX_F; f *= STEP_F) {
-                    Params temp = new Params();
-                    temp.lambda1 = lambda1;
-                    temp.lambda2 = lambda2;
-                    temp.f = f;
-                    temp.gamma = MIN_GAMMA;
-                    double error = run(temp);
-                    if (params.rmse > error) {
-                        params.lambda1 = temp.lambda1;
-                        params.lambda2 = temp.lambda2;
-                        params.f = temp.f;
-                        params.gamma = MIN_GAMMA;
-                        params.rmse = error;
-                    }
+        for (double lambda = MIN_LAMBDA; lambda <= MAX_LAMBDA; lambda += STEP_LAMBDA) {
+            for (int f = MIN_F; f <= MAX_F; f *= STEP_F) {
+                Params temp = new Params(lambda, f, MIN_GAMMA, MU);
+                double error = run(temp);
+                if (params.error > error) {
+                    params = new Params(lambda, f, MIN_GAMMA, MU);
+                    params.error = error;
                 }
             }
         }

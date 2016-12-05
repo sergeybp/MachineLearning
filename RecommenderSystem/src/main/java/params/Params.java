@@ -9,22 +9,35 @@ import java.util.Map;
 public class Params {
     public double mu;
     public Map<Long, Double> bu, bi;
-    public double lambda1;
-    public double lambda2;
+    public double lambda;
     public double gamma;
     public Map<Long, double[]> pu, qi;
     public int f;
-    public double rmse;
+    public Map<Long, HashMap<Long, Integer>> ratings;
+    public double error;
 
     public Params() {
         bu = new HashMap<>();
         bi = new HashMap<>();
         pu = new HashMap<>();
         qi = new HashMap<>();
+        ratings = new HashMap<>();
+    }
+
+    public Params(double lambda, int f, double gamma, double mu) {
+        bu = new HashMap<>();
+        bi = new HashMap<>();
+        pu = new HashMap<>();
+        qi = new HashMap<>();
+        ratings = new HashMap<>();
+        this.lambda = lambda;
+        this.f = f;
+        this.gamma = gamma;
+        this.mu = mu;
     }
 
     @Override
     public String toString() {
-        return String.format("lambda1 = %.5f, lambda2 = %.5f, gamma = %.5f, f = %d", lambda1, lambda2, gamma, f);
+        return String.format("lambda = %.5f, gamma = %.5f, f = %d", lambda, gamma, f);
     }
 }
