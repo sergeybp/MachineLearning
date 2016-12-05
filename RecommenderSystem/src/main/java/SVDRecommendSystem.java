@@ -83,12 +83,14 @@ public class SVDRecommendSystem {
                     long itemID = Long.parseLong(splitted[1].trim());
                     int rate = Integer.parseInt(splitted[2].trim());
 
-                    newParams.pu.putIfAbsent(userID, SVDRecommendSystem.getRandomArray(newParams.f));
-                    newParams.qi.putIfAbsent(itemID, SVDRecommendSystem.getRandomArray(newParams.f));
-                    newParams.bu.putIfAbsent(userID, 0d);
-                    newParams.bi.putIfAbsent(itemID, 0d);
-                    newParams.ratings.putIfAbsent(userID, new HashMap<>());
-                    newParams.ratings.get(userID).putIfAbsent(itemID, rate);
+                    if (i == 0) {
+                        newParams.pu.putIfAbsent(userID, getRandomArray(newParams.f));
+                        newParams.qi.putIfAbsent(itemID, getRandomArray(newParams.f));
+                        newParams.bu.putIfAbsent(userID, 0d);
+                        newParams.bi.putIfAbsent(itemID, 0d);
+                        newParams.ratings.putIfAbsent(userID, new HashMap<>());
+                        newParams.ratings.get(userID).putIfAbsent(itemID, rate);
+                    }
 
                     size++;
 
@@ -108,7 +110,6 @@ public class SVDRecommendSystem {
                     }
                 }
                 newParams.gamma *= 0.9;
-
                 prevError = error;
                 error = countError(newParams);
 
