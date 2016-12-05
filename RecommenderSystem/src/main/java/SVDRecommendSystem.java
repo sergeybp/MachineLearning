@@ -12,9 +12,10 @@ import java.util.Random;
  * Created by nikita on 24.11.16.
  */
 public class SVDRecommendSystem {
-    public final static int CV_PARAM = 5;
 
     private File file;
+    private File validation;
+    private boolean VALIDATION;
 
     public static final int MAX_ITERATIONS = 20;
     public static final double EPSILON = 1E-4;
@@ -31,6 +32,12 @@ public class SVDRecommendSystem {
 
     public SVDRecommendSystem(File file) {
         this.file = file;
+        this.VALIDATION = false; 
+    }
+    
+    public void setValidation(File validation) {
+        this.validation = validation;
+        this.VALIDATION = true;
     }
 
     public static double[] getRandomArray(int f) {
@@ -140,10 +147,31 @@ public class SVDRecommendSystem {
         return Math.sqrt(result / test.size());
     }
 
-    private double run(int s, Params params) {
+    private double run(Params params) {
         Params result = solve(params);
-        //double error = RMSE(new Data(data.instances.subList((int) (data.size() * 0.9), data.size())), result);
+        if (VALIDATION) {
+            double rmse = 0d;
+            int size = 0;
+            try (BufferedReader br = new BufferedReader(new FileReader(validation))) {
+                String line = br.readLine();
+                while ((line = br.readLine()) != null) {
+                    String[] splitted = line.split(",");
+                    long userID = Long.parseLong(splitted[0].trim());
+                    long itemID = Long.parseLong(splitted[1].trim());
+                    int rate = Integer.parseInt(splitted[2].trim());
+                    size++;
+                    DataInstance instance = new DataInstance(userID, itemID, rate);
+                    double e = getRate(instance, params) - instance.rate;
+                    rmse += e * e;
+                }
+
+            } catch (IOException e) {
+                Main.logger.debug("Validation file not found: {}", validation);
+            }
+            return Math.sqrt(rmse / size);
+        }
         return result.rmse;
+        
     }
 
     public Params learn() {
@@ -161,7 +189,7 @@ public class SVDRecommendSystem {
                     temp.lambda2 = lambda2;
                     temp.f = f;
                     temp.gamma = MIN_GAMMA;
-                    double error = run(CV_PARAM, temp);
+                    double error = run(temp);
                     if (params.rmse > error) {
                         params.lambda1 = temp.lambda1;
                         params.lambda2 = temp.lambda2;
