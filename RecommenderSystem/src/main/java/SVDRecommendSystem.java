@@ -95,18 +95,17 @@ public class SVDRecommendSystem {
                     size++;
 
                     double cbu = newParams.bu.get(userID), cbi = newParams.bi.get(itemID);
-                    double[] cqi = newParams.qi.get(itemID), cpu = newParams.pu.get(userID);
 
-                    double predictedRate = newParams.mu + cbi + cbu + dotProduct(cqi, cpu);
+                    double predictedRate = newParams.mu + cbi + cbu + dotProduct(newParams.qi.get(itemID), newParams.pu.get(userID));
                     double e = rate - predictedRate;
 
                     newParams.bu.put(userID, cbu + newParams.gamma * (e - newParams.lambda * cbu));
                     newParams.bi.put(itemID, cbi + newParams.gamma * (e - newParams.lambda * cbi));
 
                     for (int k = 0; k < newParams.f; k++) {
-                        double qi = cqi[k], pu = cpu[k];
-                        cqi[k] = qi + newParams.gamma * (e * pu - newParams.lambda * qi);
-                        cpu[k] = pu + newParams.gamma * (e * qi - newParams.lambda * pu);
+                        double qi = newParams.qi.get(itemID)[k], pu = newParams.pu.get(userID)[k];
+                        newParams.qi.get(itemID)[k] = qi + newParams.gamma * (e * pu - newParams.lambda * qi);
+                        newParams.pu.get(userID)[k] = pu + newParams.gamma * (e * qi - newParams.lambda * pu);
                     }
                 }
                 newParams.gamma *= 0.9;

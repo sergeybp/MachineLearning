@@ -1,17 +1,11 @@
-import net.Activation;
-import net.Feature;
-import net.Label;
-import net.Net;
+import net.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import utils.Utils;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 
 /**
  * Created by nikita on 03.12.16.
@@ -25,8 +19,9 @@ public class Main {
 
     public static final Logger logger = LoggerFactory.getLogger(Main.class);
 
-    private static final double RATE = 0.07;
-    private static final double RED = 0d;
+    private static final double RATE = 0.07d;
+    private static final double REG = 0d;
+    private static final double PERCENTAGE = 100;
 
     public static void cleanFailed() {
         File dir = new File("./failed");
@@ -39,56 +34,38 @@ public class Main {
         logger.debug("Hello");
 
         try {
-            //ArrayList<net.Feature> trainFeatures = Utils.readImages(Paths.get(Main.class.getResource(TRAIN_IMAGES).toURI()).toFile());
-            //ArrayList<net.Label> trainLabels = Utils.readLabels(Paths.get(Main.class.getResource(TRAIN_LABELS).toURI()).toFile());
+            File trainFeatures = Paths.get(Main.class.getResource(TRAIN_IMAGES).toURI()).toFile();
+            File trainLabels = Paths.get(Main.class.getResource(TRAIN_LABELS).toURI()).toFile();
+            File testFeatures = Paths.get(Main.class.getResource(TEST_IMAGES).toURI()).toFile();
+            File testLabels = Paths.get(Main.class.getResource(TEST_LABELS).toURI()).toFile();
 
-            Net net = new Net(28 * 28, 25, 10, Activation.SIGMOID);
-            net.initWeights(Paths.get(Main.class.getResource("w1.txt").toURI()).toFile(), Paths.get(Main.class.getResource("w2.txt").toURI()).toFile());
-            // net.initWeights();
-            //net.learn(trainFeatures, trainLabels, RATE, 1d / trainFeatures.size(), RED);
+            Data trainData = Utils.readData(trainFeatures, trainLabels);
+            Data testData = Utils.readData(testFeatures, testLabels);
 
-            ArrayList<Feature> testFeatures = Utils.readImages(Paths.get(Main.class.getResource(TEST_IMAGES).toURI()).toFile());
-            ArrayList<Label> testLabels = Utils.readLabels(Paths.get(Main.class.getResource(TEST_LABELS).toURI()).toFile());
+            Net net = new Net(new int[]{28 * 28, 70, 70, 60, 10}, new Activation[]{Activation.SIGMOID, Activation.SIGMOID, Activation.SIGMOID, Activation.SIGMOID, Activation.SIGMOID});
+            //net.initWeights(new File[]{new File("w0.txt"), new File("w1.txt"), new File("w2.txt"), new File("w3.txt")});
+            Params params = net.learn(trainData, testData);
 
+            Main.logger.info("Best params: {}", params.toString());
 
             int failed = 0;
             cleanFailed();
             failed = 0;
-            for (int i = 0; i < testFeatures.size(); i++) {
-                Feature f = testFeatures.get(i);
+            for (int i = 0; i < testData.size(); i++) {
+                Feature f = testData.get(i).feature;
                 Label result = net.classify(f);
-                if (!result.equals(testLabels.get(i))) {
-                 //   net.learnStep(f, testLabels.get(i), RATE, RED);
-                }
-               // result = net.classify(f);
-                if (!result.equals(testLabels.get(i))) {
+                if (!result.equals(testData.get(i).label)) {
                     failed++;
-                    File file = new File("./failed/" + i + "_" + result.label + "_" + testLabels.get(i).label + "_image.png");
-                    ImageIO.write(testFeatures.get(i).toImage(), "png", file);
+               //     net.learnStep(testData.get(i), new Params(RATE, REG, 1));
+  //                  File file = new File("./failed/" + i + "_" + result.value + "_" + testData.get(i).label + "_image.png");
+//                    ImageIO.write(testData.get(i).feature.toImage(), "png", file);
                 }
             }
-//            learnOnImage(net, "./failed/1_5_2_image.png", new Label(2));
 
-
-            Main.logger.info("Accuracy: {}%", (1d - (double) failed / testFeatures.size()) * 100);
-        } catch (IOException | URISyntaxException e) {
+            Main.logger.info("Accuracy: {}%", (1d - (double) failed / testData.size()) * PERCENTAGE);
+        } catch (URISyntaxException e) {
             e.printStackTrace();
         }
     }
 
-    public static void learnOnImage(Net net, String file, Label must) throws IOException {
-        BufferedImage image = ImageIO.read(new File(file));
-        Feature feature = new Feature(image);
-        Label result = net.classify(feature);
-        System.out.println(result);
-        if (!result.equals(must)) {
-            for (int t = 0; t < 10; t++) {
-                net.learnStep(feature, must, RATE, RED);
-                result = net.classify(feature);
-            }
-            System.out.println(result);
-        }
-        net.w1.writeFile("./src/main/resources/w1.txt");
-        net.w2.writeFile("./src/main/resources/w2.txt");
-    }
 }

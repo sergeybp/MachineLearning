@@ -29,7 +29,9 @@ public class Feature {
         x = new double[width * height];
         for (int k = 0; k < height; k++) {
             for (int i = 0; i < width; i++) {
-                x[i + width * k] = image.getRGB(i, k) / 255;
+
+                x[i + width * k] = image.getRGB(i, k) / 255d;// > 128 ? 1 : 0;
+                //System.out.println(x[i + width * k]);
             }
         }
     }
@@ -58,7 +60,7 @@ public class Feature {
         return x[i];
     }
 
-    public void addHead(int v) {
+    public void addHead(double v) {
         double[] newX = new double[size() + 1];
         newX[0] = v;
         System.arraycopy(x, 0, newX, 1, x.length);

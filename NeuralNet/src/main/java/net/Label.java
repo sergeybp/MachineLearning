@@ -4,21 +4,21 @@ package net;
  * Created by nikita on 03.12.16.
  */
 public class Label implements Comparable<Label> {
-    public int label;
+    public int value;
 
-    public Label(int label) {
-        this.label = label;
+    public Label(int value) {
+        this.value = value;
     }
 
     @Override
     public String toString() {
-        return "" + label;
+        return "" + value;
     }
 
 
     @Override
     public int compareTo(Label o) {
-        return Integer.compare(label, o.label);
+        return Integer.compare(value, o.value);
     }
 
     @Override
@@ -28,12 +28,12 @@ public class Label implements Comparable<Label> {
 
         Label label1 = (Label) o;
 
-        return label == label1.label;
+        return value == label1.value;
 
     }
 
     @Override
     public int hashCode() {
-        return label;
+        return value;
     }
 }
