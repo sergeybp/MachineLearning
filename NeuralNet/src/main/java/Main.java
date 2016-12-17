@@ -42,7 +42,7 @@ public class Main {
             Data trainData = Utils.readData(trainFeatures, trainLabels);
             Data testData = Utils.readData(testFeatures, testLabels);
 
-            Net net = new Net(new int[]{28 * 28, 70, 70, 60, 10}, new Activation[]{Activation.SIGMOID, Activation.SIGMOID, Activation.SIGMOID, Activation.SIGMOID, Activation.SIGMOID});
+            Net net = new Net(new int[]{28 * 28, 60, 60, 60, 10}, new Activation[]{Activation.SIGMOID, Activation.SIGMOID, Activation.SIGMOID, Activation.SIGMOID, Activation.SIGMOID});
             //net.initWeights(new File[]{new File("w0.txt"), new File("w1.txt"), new File("w2.txt"), new File("w3.txt")});
             Params params = net.learn(trainData, testData);
 
